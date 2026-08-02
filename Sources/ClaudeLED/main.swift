@@ -25,6 +25,10 @@ let halfPeriod = 0.4
 // macOS reasserts the LED on charging-state changes, so re-write periodically
 // even when nothing changed.
 let refreshInterval = 5.0
+// If the agent dies without running its session-end hook (crash, kill -9), the
+// state file goes stale. After this long, hand the LED back to macOS instead
+// of showing the last state forever.
+let staleTimeout = 600.0
 
 let defaultStatePath = "/tmp/claude-led.state"
 
@@ -49,6 +53,14 @@ enum Mode: String {
 func readMode(_ path: String) -> Mode {
     guard let raw = try? String(contentsOfFile: path, encoding: .utf8) else { return .system }
     return Mode(rawValue: raw.trimmingCharacters(in: .whitespacesAndNewlines)) ?? .system
+}
+
+// A state file that hasn't been touched in staleTimeout means the agent that
+// owns it is gone (crashed, killed, terminal closed) — or never existed.
+func stateIsStale(_ path: String, now: Date = Date()) -> Bool {
+    guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+          let mtime = attrs[.modificationDate] as? Date else { return true } // missing counts as stale
+    return now.timeIntervalSince(mtime) > staleTimeout
 }
 
 // MARK: - SMC
@@ -163,7 +175,8 @@ func daemon(statePath: String) throws {
     var lastWrite = Date.distantPast
 
     while true {
-        let want = readMode(statePath).color(phase: phase)
+        // A stale state file means the agent is gone — let macOS decide the LED.
+        let want = (stateIsStale(statePath) ? Mode.system : readMode(statePath)).color(phase: phase)
         let now = Date()
         if want != lastValue || now.timeIntervalSince(lastWrite) > refreshInterval {
             do { try smc.write(want) } catch { FileHandle.standardError.write("\(error)\n".data(using: .utf8)!) }
@@ -207,6 +220,14 @@ func selftest() {
     precondition(readMode(tmp) == .system, "unknown state must fall back to system control")
     try? FileManager.default.removeItem(atPath: tmp)
     precondition(readMode(tmp) == .system, "missing state file must fall back to system control")
+
+    try! "done".write(toFile: tmp, atomically: true, encoding: .utf8)
+    precondition(!stateIsStale(tmp, now: Date().addingTimeInterval(staleTimeout - 1)),
+                 "fresh state file must not be stale")
+    precondition(stateIsStale(tmp, now: Date().addingTimeInterval(staleTimeout + 1)),
+                 "old state file must count as stale")
+    try? FileManager.default.removeItem(atPath: tmp)
+    precondition(stateIsStale(tmp), "missing state file must count as stale")
 
     print("selftest ok")
 }

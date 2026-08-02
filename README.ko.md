@@ -92,3 +92,5 @@ sudo launchctl unload /Library/LaunchDaemons/com.bleank.claude-led.plist && sudo
 - 점멸은 1.25 Hz. SMC가 더 빠른 쓰기를 견디는지는 미검증 — `halfPeriod`.
 - macOS가 충전 상태 변화 시 LED 제어를 되찾아가므로, 데몬은 변화가 없어도 5초마다 다시 씁니다.
 - Claude Code 세션 두 개가 상태 파일과 LED 하나를 공유: 마지막에 쓴 쪽이 이깁니다.
+- 에이전트가 세션 종료 훅 없이 죽으면(crash, `kill -9`) 상태 파일이 낡은 채 남습니다.
+  10분 후 데몬이 LED를 macOS 제어로 되돌립니다 — `staleTimeout`.

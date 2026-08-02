@@ -92,3 +92,5 @@ The daemon restores system control on exit; remove the `hooks` block from `~/.cl
 - Blink is 1.25 Hz. Whether the SMC tolerates faster writes is untested — `halfPeriod`.
 - macOS reasserts the LED on charging-state changes, so the daemon re-writes every 5s regardless.
 - Two Claude Code sessions share one state file and one LED: last writer wins.
+- If the agent exits without running its session-end hook (crash, `kill -9`), the state file goes
+  stale; after 10 minutes the daemon hands the LED back to macOS — `staleTimeout`.
