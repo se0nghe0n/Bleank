@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "printf thinking > /tmp/claude-led.state" }] }
+    ],
+    "PostToolUse": [
+      { "hooks": [{ "type": "command", "command": "printf thinking > /tmp/claude-led.state" }] }
+    ],
+    "MessageDisplay": [
+      { "hooks": [{ "type": "command", "command": "printf responding > /tmp/claude-led.state" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "printf done > /tmp/claude-led.state" }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "command": "printf system > /tmp/claude-led.state" }] }
+    ]
+  }
+}
