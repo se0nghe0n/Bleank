@@ -1,5 +1,7 @@
 # Bleank
 
+English | [한국어](README.ko.md)
+
 Claude Code status on the MagSafe 3 LED.
 
 | Claude is | LED |
