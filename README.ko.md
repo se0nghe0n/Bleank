@@ -24,6 +24,29 @@ SMC 쓰기에는 root 권한이 필요하고, 점멸에는 루프가 필요합�
 상태 파일을 폴링하고, 사용자 권한으로 실행되는 훅은 그 파일에 단어 하나만 씁니다.
 핫 패스에 `sudo`가 없습니다.
 
+## Pi 코딩 에이전트
+
+Pi는 Claude Code의 `hooks.json`을 읽지 못하므로, [`.pi/extensions/claude-led.ts`](.pi/extensions/claude-led.ts)가
+Pi 확장(extension)으로 훅을 동일하게 구현합니다. 상태와 상태 파일은 동일합니다:
+
+| Pi 이벤트 | 상태 |
+|---|---|
+| `input`(명령어 제외), `before_agent_start`, `tool_execution_start` | thinking |
+| `message_start` / `message_update` (assistant) | responding |
+| `agent_settled` | done |
+| `question` 도구 시작 | waiting |
+| `session_shutdown` | system |
+
+전역으로 한 번 설치하면 모든 프로젝트에서 동작합니다:
+
+```bash
+mkdir -p ~/.pi/agent/extensions && cp .pi/extensions/claude-led.ts ~/.pi/agent/extensions/
+```
+
+Pi를 재시작하거나 `/reload` 후 프롬프트를 보내보세요. 프로젝트 로컬로는 이 저장소 안에서
+Pi를 실행해도 됩니다 — `.pi/extensions/`는 프로젝트 신뢰(trust) 후 자동 탐지됩니다.
+Claude Code 훅과 함께 써도 무방하며, 마지막에 쓴 쪽이 이깁니다.
+
 ## 설치
 
 ```bash

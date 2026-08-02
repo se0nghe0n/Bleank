@@ -23,6 +23,30 @@ Macs without a MagSafe port (the daemon reports `SMC result = 132`).
 SMC writes need root; blinking needs a loop. So: one root daemon polls a state file,
 and the hooks — which run as you — write a single word into it. No `sudo` in the hot path.
 
+## Pi coding agent
+
+Pi doesn't understand Claude Code's `hooks.json`, so
+[`.pi/extensions/claude-led.ts`](.pi/extensions/claude-led.ts) mirrors the hooks as a Pi
+extension. Same states, same state file:
+
+| Pi event | State |
+|---|---|
+| `input` (non-command), `before_agent_start`, `tool_execution_start` | thinking |
+| `message_start` / `message_update` (assistant) | responding |
+| `agent_settled` | done |
+| `question` tool start | waiting |
+| `session_shutdown` | system |
+
+Install it once, globally (works in every project):
+
+```bash
+mkdir -p ~/.pi/agent/extensions && cp .pi/extensions/claude-led.ts ~/.pi/agent/extensions/
+```
+
+Restart Pi (or `/reload`) and send a prompt. Project-local alternative: just run Pi inside
+this repo — `.pi/extensions/` is auto-discovered after the project is trusted. Both can
+coexist with the Claude Code hooks; last writer wins.
+
 ## Install
 
 ```bash
