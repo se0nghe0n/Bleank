@@ -12,6 +12,12 @@
     "Stop": [
       { "hooks": [{ "type": "command", "command": "printf done > /tmp/claude-led.state" }] }
     ],
+    "Notification": [
+      { "hooks": [{ "type": "command", "command": "printf waiting > /tmp/claude-led.state" }] }
+    ],
+    "PermissionRequest": [
+      { "hooks": [{ "type": "command", "command": "printf waiting > /tmp/claude-led.state" }] }
+    ],
     "SessionEnd": [
       { "hooks": [{ "type": "command", "command": "printf system > /tmp/claude-led.state" }] }
     ]

@@ -31,13 +31,14 @@ let defaultStatePath = "/tmp/claude-led.state"
 // MARK: - Mode
 
 enum Mode: String {
-    case thinking, responding, done, off, system
+    case thinking, responding, done, waiting, off, system
 
     func color(phase: Bool) -> UInt8 {
         switch self {
         case .thinking: return phase ? amber : ledOff
         case .responding: return phase ? green : ledOff
         case .done: return green
+        case .waiting: return amber // ponytail: no red element in the LED — solid amber is "needs you"
         case .off: return ledOff
         case .system: return systemControl
         }
@@ -196,6 +197,7 @@ func selftest() {
     precondition(Mode.responding.color(phase: true) == green)
     precondition(Mode.responding.color(phase: false) == ledOff)
     precondition(Mode.done.color(phase: true) == green && Mode.done.color(phase: false) == green)
+    precondition(Mode.waiting.color(phase: true) == amber && Mode.waiting.color(phase: false) == amber)
     precondition(Mode.system.color(phase: true) == systemControl)
 
     let tmp = NSTemporaryDirectory() + "bleank-selftest"

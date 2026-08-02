@@ -9,6 +9,7 @@ Claude Code status on the MagSafe 3 LED.
 | thinking | amber, blinking |
 | responding | green, blinking |
 | done | green, solid |
+| waiting on you (question / permission) | amber, solid |
 | no session | back under macOS control |
 
 **Amber, not red.** The MagSafe LED is a two-colour part — amber and green, no red element.
