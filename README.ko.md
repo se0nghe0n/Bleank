@@ -47,6 +47,29 @@ Pi를 재시작하거나 `/reload` 후 프롬프트를 보내보세요. 프로�
 Pi를 실행해도 됩니다 — `.pi/extensions/`는 프로젝트 신뢰(trust) 후 자동 탐지됩니다.
 Claude Code 훅과 함께 써도 무방하며, 마지막에 쓴 쪽이 이깁니다.
 
+## Codex
+
+Codex는 Claude와 같은 모양의 `hooks.json`을 쓰는 자체 [훅](https://developers.openai.com/codex/hooks)이
+있어서, [`.codex/hooks.json`](.codex/hooks.json)이 같은 상태 파일에 같은 단어를 씁니다. Codex에는
+스트리밍 이벤트가 없어 `responding`(초록 점멸)은 표시되지 않습니다 — 주황 점멸에서 바로 초록 점등으로 넘어갑니다.
+
+| Codex 이벤트 | 상태 |
+|---|---|
+| `UserPromptSubmit`, `PostToolUse` | thinking |
+| `Stop` | done |
+| `PermissionRequest`, `request_user_input`에 대한 `PreToolUse` | waiting |
+| `SessionEnd` | system |
+
+전역으로 한 번 설치(`~/.codex/hooks.json`에 병합, 백업 먼저):
+
+```bash
+cp ~/.codex/hooks.json ~/.codex/hooks.json.bak 2>/dev/null; jq -s '.[0] * .[1]' ~/.codex/hooks.json .codex/hooks.json > /tmp/h.json && mv /tmp/h.json ~/.codex/hooks.json
+```
+
+Codex는 처음 보는 훅을 실행하지 않습니다. CLI에서 `/hooks`를 열어 한 번 신뢰(trust)하세요(정의가
+바뀌면 다시 검토 대상이 됩니다). 프로젝트 로컬로는 이 저장소를 신뢰한 뒤 그 안에서 Codex를 실행해도
+됩니다 — `.codex/hooks.json`이 자동 탐지됩니다. Claude Code, Pi와 상태 파일을 공유하며, 마지막에 쓴 쪽이 이깁니다.
+
 ## 설치
 
 ```bash
@@ -85,12 +108,14 @@ Claude Code를 재시작하고 프롬프트를 보내보세요.
 sudo launchctl unload /Library/LaunchDaemons/com.bleank.claude-led.plist && sudo rm /Library/LaunchDaemons/com.bleank.claude-led.plist /usr/local/bin/claude-led
 ```
 
-데몬은 종료 시 LED를 시스템 제어로 되돌립니다. `~/.claude/settings.json`에서 `hooks` 블록을 제거하세요.
+데몬은 종료 시 LED를 시스템 제어로 되돌립니다. `~/.claude/settings.json`에서 `hooks` 블록을 제거하고,
+`~/.codex/hooks.json`에 병합한 이벤트나 `~/.pi/agent/extensions/claude-led.ts`도 함께 지우세요.
 
 ## 알려진 한계
 
 - 점멸은 1.25 Hz. SMC가 더 빠른 쓰기를 견디는지는 미검증 — `halfPeriod`.
 - macOS가 충전 상태 변화 시 LED 제어를 되찾아가므로, 데몬은 변화가 없어도 5초마다 다시 씁니다.
-- Claude Code 세션 두 개가 상태 파일과 LED 하나를 공유: 마지막에 쓴 쪽이 이깁니다.
+- 모든 세션(Claude Code, Codex, Pi)이 상태 파일과 LED 하나를 공유: 마지막에 쓴 쪽이 이깁니다.
+- Codex에는 스트리밍 훅이 없어 `responding`을 표시하지 않습니다. Codex 턴은 주황 점멸 후 초록 점등입니다.
 - 에이전트가 세션 종료 훅 없이 죽으면(crash, `kill -9`) 상태 파일이 낡은 채 남습니다.
   10분 후 데몬이 LED를 macOS 제어로 되돌립니다 — `staleTimeout`.

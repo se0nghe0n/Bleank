@@ -1,0 +1,26 @@
+{
+  "description": "Bleank: mirror Codex lifecycle onto the MagSafe LED via /tmp/claude-led.state.",
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "printf thinking > /tmp/claude-led.state", "timeout": 5 }] }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^request_user_input$",
+        "hooks": [{ "type": "command", "command": "printf waiting > /tmp/claude-led.state", "timeout": 5 }]
+      }
+    ],
+    "PermissionRequest": [
+      { "hooks": [{ "type": "command", "command": "printf waiting > /tmp/claude-led.state", "timeout": 5 }] }
+    ],
+    "PostToolUse": [
+      { "hooks": [{ "type": "command", "command": "printf thinking > /tmp/claude-led.state", "timeout": 5 }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "printf done > /tmp/claude-led.state", "timeout": 5 }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "command": "printf system > /tmp/claude-led.state", "timeout": 1 }] }
+    ]
+  }
+}
